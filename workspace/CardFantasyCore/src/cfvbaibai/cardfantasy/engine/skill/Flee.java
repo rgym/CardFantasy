@@ -18,6 +18,11 @@ public final class Flee {
         {
             return;
         }
+        //不屈卡牌不能逃跑
+        if (defender.getStatus().containsStatus(CardStatusType.不屈))
+        {
+            return;
+        }
         if (defender.getOwner().getHand().contains(defender) || defender.getOwner().getDeck().contains(defender)) {
             // 如果已经转生了，那么就不再发动逃跑了
             return;
@@ -29,22 +34,13 @@ public final class Flee {
         defender.getOwner().getField().expelCard(defender.getPosition());
 
         //逃跑卡牌会移除4技能的buff和铁壁效果。
+        defender.setSummonNumber(0);
+        defender.setAddDelay(0);
+        defender.setRuneActive(false);
         resolver.resolveLeaveSkills(defender);
-        if(defender.containsAllSkill(SkillType.铁壁)||defender.containsAllSkill(SkillType.驱虎吞狼))
-        {
-            for(SkillUseInfo defenderskill:defender.getAllUsableSkills())
-            {
-                if (defenderskill.getType() == SkillType.铁壁)
-                {
-                    ImpregnableDefenseHeroBuff.remove(resolver, defenderskill, defender);
-                }
-                if (defenderskill.getType() == SkillType.驱虎吞狼)
-                {
-                    ImpregnableDefenseHeroBuff.remove(resolver, defenderskill.getAttachedUseInfo2(), defender);
-                }
-            }
-        }
-        
+        ImpregnableDefenseHeroBuff.removeSkill(defender,resolver);//移除铁壁的buff
+
+        ui.returnCard(attacker, defender, cardSkill);
         // 如果是被召唤的卡牌，发动逃跑技能后应该直接消失
         if (defender.isSummonedMinion()) {
             return;
@@ -56,7 +52,6 @@ public final class Flee {
             defender.getOwner().getDeck().addCard(defender);
             defender.reset();
         } else {
-            ui.returnCard(attacker, defender, cardSkill);
             ui.cardToHand(defender.getOwner(), defender);
             hand.addCard(defender);
             defender.reset();

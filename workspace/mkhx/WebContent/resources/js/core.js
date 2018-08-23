@@ -489,6 +489,7 @@ var allLayerAddition=function(){
     allObj['0']=layerAddition(100,100,100);
     allObj['1']=layerAddition(168,160,160);
     allObj['2']=layerAddition(168,160,160);
+    allObj['3']=layerAddition(231,220,220);
     allObj['90']=layerAddition(200,150,160);
     allObj['91']=layerAddition(200,160,160);
     allObj['92']=layerAddition(210,160,160);

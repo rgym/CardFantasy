@@ -13,7 +13,7 @@ import cfvbaibai.cardfantasy.engine.SkillResolver;
 import cfvbaibai.cardfantasy.engine.SkillUseInfo;
 
 public final class RegressionSoul {
-    public static void apply(SkillResolver resolver, SkillUseInfo skillUseInfo, CardInfo resurrector) {
+    public static void apply(SkillResolver resolver, SkillUseInfo skillUseInfo, CardInfo resurrector,Player opponent) {
         if (resurrector == null) {
             throw new CardFantasyRuntimeException("resurrector should not be null");
         }
@@ -23,22 +23,32 @@ public final class RegressionSoul {
         Player player = resurrector.getOwner();
 
         List<CardInfo> deadCards = player.getGrave().toList();
-        deadCards.remove(resurrector);
+        if(!skillUseInfo.getSkill().isPostcastSkill())
+        {
+            deadCards.remove(resurrector);
+        }
         List<CardInfo> cardsToResurrect = Randomizer.getRandomizer().pickRandom(
                 deadCards, resurrectionCount, true, null);
         if (cardsToResurrect.size() > resurrectionCount) {
             throw new CardFantasyRuntimeException("cardsToResurrect.size() = " + cardsToResurrect.size() + ", resurrectionCount = " + resurrectionCount);
         }
+        if(cardsToResurrect.size()==0)
+        {
+            return;
+        }
         GameUI ui = resolver.getStage().getUI();
         ui.useSkill(resurrector, cardsToResurrect, skill, true);
         for (CardInfo card : cardsToResurrect) {
-            Hand hand = card.getOwner().getHand();
-            if (hand.isFull()) {
+            Hand hand = player.getHand();
+            if (hand.isFull()||card.getIsDeathNow()) {
+
             } else {
+                ui.cardToHand(player, card);
                 player.getGrave().removeCard(card);
-                ui.cardToHand(card.getOwner(), card);
                 hand.addCard(card);
             }
         }
+        HellPrison.apply(resolver,opponent,player);
+        HellPrison.applyCoordination(resolver,opponent);
     }
 }

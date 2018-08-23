@@ -18,6 +18,7 @@ public class CardStatus {
 
     public boolean remove(CardStatusType type) {
         boolean removedAny = false;
+        boolean multipleEnd = true;
         Iterator<CardStatusItem> iterator = items.iterator();
         while (iterator.hasNext()) {
             CardStatusItem next = iterator.next();
@@ -26,8 +27,23 @@ public class CardStatus {
                 if(next.getEffectNumber()>1)
                 {
                     next.setEffectNumber(next.getEffectNumber()-1);
-                    break;
+                    multipleEnd = false;
+                    continue;
                 }
+                iterator.remove();
+                removedAny = true;
+            }
+        }
+        return removedAny&&multipleEnd;
+    }
+
+    //强制移除负面状态
+    public boolean removeForce(CardStatusType type) {
+        boolean removedAny = false;
+        Iterator<CardStatusItem> iterator = items.iterator();
+        while (iterator.hasNext()) {
+            CardStatusItem next = iterator.next();
+            if (next.getType() == type) {
                 iterator.remove();
                 removedAny = true;
             }

@@ -29,15 +29,40 @@ public class DeathMark {
         if (!resolver.resolveAttackBlockingSkills(caster, victim, skill, 1).isAttackable()) {
             return;
         }
-        statusItem.setEffect(effectNumber);
+        statusItem.setEffectNumber(effectNumber);
         if(effectNumber>0)
         {
-            if(victim.getEffects().contains(statusItem)){
+            if(!victim.getStatus().getStatusOf(CardStatusType.死印).isEmpty()){
                 return;
             }
-            if(!victim.getEffectsCausedBy(skillUseInfo).isEmpty())
+        }
+        int magicEchoSkillResult = resolver.resolveMagicEchoSkill(caster, victim, skill);
+        if(magicEchoSkillResult==1||magicEchoSkillResult==2) {
+            if(caster.isDead())
             {
-                return;
+                if (magicEchoSkillResult == 1) {
+                    return;
+                }
+            }
+            else if (!resolver.resolveAttackBlockingSkills(victim, caster, skill, 1).isAttackable()) {
+                if (magicEchoSkillResult == 1) {
+                    return;
+                }
+            }
+            else if(effectNumber>0)
+            {
+                if(!caster.getStatus().getStatusOf(CardStatusType.死印).isEmpty()){
+                    if (magicEchoSkillResult == 1) {
+                        return;
+                    }
+                }
+            }
+            else {
+                ui.addCardStatus(victim, caster, skill, statusItem);
+                caster.addStatus(statusItem);
+                if (magicEchoSkillResult == 1) {
+                    return;
+                }
             }
         }
         ui.addCardStatus(caster, victim, skill, statusItem);

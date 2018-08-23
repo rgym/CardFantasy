@@ -32,37 +32,28 @@ public final class Return {
         //}
         GameUI ui = resolver.getStage().getUI();
         ui.returnCard(attacker, defender, cardSkill);
+        resolver.resolveLeaveSkills(defender);
+        ImpregnableDefenseHeroBuff.removeSkill(defender,resolver);//移除铁壁的buff
         if (!defender.getStatus().containsStatus(CardStatusType.召唤)) {
             // 被召唤的卡牌不回到卡组，而是直接消失
             // 送还的卡是随机插入卡组而非加在末尾
             int deckSize = defender.getOwner().getDeck().size();
             int index = 0;
-            if (deckSize > 0)
-            {
+            if (deckSize > 0) {
                 index = Randomizer.getRandomizer().next(0, deckSize);
             }
+            defender.restoreOwner();
             defender.getOwner().getDeck().insertCardToPosition(defender, index);
             defender.reset();
+
         }
-        resolver.resolveLeaveSkills(defender);
-        if(defender.containsAllSkill(SkillType.铁壁)||defender.containsAllSkill(SkillType.驱虎吞狼))
-        {
-            for(SkillUseInfo defenderskill:defender.getAllUsableSkills())
-            {
-                if (defenderskill.getType() == SkillType.铁壁)
-                {
-                    ImpregnableDefenseHeroBuff.remove(resolver, defenderskill, defender);
-                }
-                if (defenderskill.getType() == SkillType.驱虎吞狼)
-                {
-                    ImpregnableDefenseHeroBuff.remove(resolver, defenderskill.getAttachedUseInfo2(), defender);
-                }
-            }
-        }
+        defender.setSummonNumber(0);
+        defender.setAddDelay(0);
+        defender.setRuneActive(false);
     }
 
     //地裂等牌返回牌库是有顺序的。
-    public static void returnCard2(SkillResolver resolver, Skill cardSkill, CardInfo attacker, CardInfo defender) {
+    public static void returnCard2(SkillResolver resolver, Skill cardSkill, CardInfo attacker, CardInfo defender, boolean flag) {
         defender.getOwner().getField().expelCard(defender.getPosition());
         // 这段验证不再有效，因为反射装甲可能将横扫的攻击者送还
         //if (expelledCard != defender) {
@@ -70,6 +61,11 @@ public final class Return {
         //}
         GameUI ui = resolver.getStage().getUI();
         ui.returnCard(attacker, defender, cardSkill);
+        //flag判断是否是从手牌回到牌库
+        if (flag) {
+            ImpregnableDefenseHeroBuff.removeSkill(defender,resolver);//移除铁壁的buff
+        }
+        resolver.resolveLeaveSkills(defender);
         if (!defender.getStatus().containsStatus(CardStatusType.召唤)) {
             // 被召唤的卡牌不回到卡组，而是直接消失
             // 送还的卡是随机插入卡组而非加在末尾
@@ -80,23 +76,34 @@ public final class Return {
 //            {
 //                index = Randomizer.getRandomizer().next(0, deckSize);
 //            }
+            defender.restoreOwner();
             defender.getOwner().getDeck().insertCardToPosition(defender, index);
             defender.reset();
         }
-        resolver.resolveLeaveSkills(defender);
-        if(defender.containsAllSkill(SkillType.铁壁)||defender.containsAllSkill(SkillType.驱虎吞狼))
+        defender.setSummonNumber(0);
+        defender.setAddDelay(0);
+        defender.setRuneActive(false);
+    }
+
+    //卡牌返回到手牌
+    public static void returnHand(SkillResolver resolver, Skill cardSkill, CardInfo attacker, CardInfo defender) {
+        if(defender.getOriginalOwner()!=null&&defender.getOriginalOwner().getHand().isFull())
         {
-            for(SkillUseInfo defenderskill:defender.getAllUsableSkills())
-            {
-                if (defenderskill.getType() == SkillType.铁壁)
-                {
-                    ImpregnableDefenseHeroBuff.remove(resolver, defenderskill, defender);
-                }
-                if (defenderskill.getType() == SkillType.驱虎吞狼)
-                {
-                    ImpregnableDefenseHeroBuff.remove(resolver, defenderskill.getAttachedUseInfo2(), defender);
-                }
-            }
+            return;
         }
+        defender.getOwner().getField().expelCard(defender.getPosition());
+        GameUI ui = resolver.getStage().getUI();
+        ui.returnCard(attacker, defender, cardSkill);
+        resolver.resolveLeaveSkills(defender);
+        ImpregnableDefenseHeroBuff.removeSkill(defender,resolver);//移除铁壁的buff
+        if (!defender.getStatus().containsStatus(CardStatusType.召唤)) {
+            defender.restoreOwner();
+            defender.getOwner().getHand().addCard(defender);
+            defender.reset();
+            ui.cardToHand(defender.getOwner(), defender);
+        }
+        defender.setSummonNumber(0);
+        defender.setAddDelay(0);
+        defender.setRuneActive(false);
     }
 }

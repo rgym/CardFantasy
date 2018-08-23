@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 public class HandCardAddSkillNormal {
     public static void apply(SkillResolver resolver, SkillUseInfo skillUseInfo, CardInfo card, Skill addSkill,int number) {
-        if (card == null || card.isDead()) {
+        if (card == null ) {
             return;
         }
         Skill skill = skillUseInfo.getSkill();
@@ -26,7 +26,7 @@ public class HandCardAddSkillNormal {
         for (CardInfo handCard : allHandCards) {
             for(SkillUseInfo skillInfo:handCard.getSkillUserInfos())
             {
-                if(skillInfo.getGiveSkill()==1)
+                if(skillInfo.getGiveSkill()==2)
                 {
                     flag=false;
                     break;
@@ -54,7 +54,7 @@ public class HandCardAddSkillNormal {
                 continue;
             }
             thisSkillUserInfo = new SkillUseInfo(once,cardSkill);
-            thisSkillUserInfo.setGiveSkill(1);
+            thisSkillUserInfo.setGiveSkill(2);
             once.addSkill(thisSkillUserInfo);
         }
     }

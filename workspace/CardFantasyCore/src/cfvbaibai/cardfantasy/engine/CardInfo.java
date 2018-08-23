@@ -20,6 +20,7 @@ public class CardInfo extends EntityInfo {
     @NonSerializable
     private Card card;
     private int hp;
+    private int addDelay;//判断卡牌在卡组中额外的等待
     private int summonDelay;
     @NonSerializable
     private CardStatus status;
@@ -32,6 +33,10 @@ public class CardInfo extends EntityInfo {
     private int cachedPosition;
     private boolean deadOnce;
     private boolean isSumon;
+    private CardInfo relationCardInfo;//关联卡牌,变身前卡牌和变身后卡牌//或者召唤者
+    private int summonNumber;//判断卡牌存在回合
+    private boolean runeActive;//判断卡牌是否激活符文
+    private boolean isDeathNow;//判断卡牌是否是当前回合死亡
     
     private int eternalWound = 0;
 
@@ -53,6 +58,11 @@ public class CardInfo extends EntityInfo {
         this.cachedPosition = -1;
         this.deadOnce = false;
         this.isSumon = false;
+        this.relationCardInfo = null;
+        this.addDelay = 0;
+        this.summonNumber=0;
+        this.runeActive=false;
+        this.isDeathNow=false;
     }
 
     public List<SkillUseInfo> getSkillUserInfos(){
@@ -85,10 +95,25 @@ public class CardInfo extends EntityInfo {
         }
     }
 
+    //对方回合结束移除技能附加的技能
+    public void removeGiveSkill()
+    {
+        for(int j=0;j<this.skillUseInfos.size();j++){
+            if(this.skillUseInfos.get(j).getGiveSkill() == 1)
+            {
+                this.skillUseInfos.remove(j);
+            }
+        }
+    }
+
     public void removeAllGiveSkill()
     {
         for(int j=0;j<this.skillUseInfos.size();j++){
             if(this.skillUseInfos.get(j).getGiveSkill() == 1)
+            {
+                this.skillUseInfos.remove(j);
+            }
+            else if(this.skillUseInfos.get(j).getGiveSkill() == 2)
             {
                 this.skillUseInfos.remove(j);
             }
@@ -272,6 +297,15 @@ public class CardInfo extends EntityInfo {
         return this;
     }
 
+    public int getAddDelay() {
+        return this.addDelay;
+    }
+
+    public CardInfo setAddDelay(int addDelay) {
+        this.addDelay = addDelay;
+        return this;
+    }
+
     public CardStatus getStatus() {
         return status;
     }
@@ -282,6 +316,10 @@ public class CardInfo extends EntityInfo {
 
     public boolean removeStatus(CardStatusType type) {
         return this.status.remove(type);
+    }
+
+    public boolean removeForce(CardStatusType type) {
+        return this.status.removeForce(type);
     }
 
     @Override
@@ -513,6 +551,10 @@ public class CardInfo extends EntityInfo {
         result.remove(effect);
         if (effect.getType() == SkillEffectType.MAXHP_CHANGE && this.getHP() > this.getMaxHP()) {
             this.setBasicHP(this.getMaxHP());
+        }
+        if(effect.getType() == SkillEffectType.MAXHP_CHANGE && effect.getValue()<0)
+        {
+            this.setBasicHP(this.hp-effect.getValue());
         }
     }
 
@@ -819,4 +861,35 @@ public class CardInfo extends EntityInfo {
         this.isSumon = isSummon;
     }
 
+    public int getSummonNumber(){
+        return this.summonNumber;
+    }
+
+    public void setSummonNumber(int summonNumber){
+        this.summonNumber = summonNumber;
+    }
+
+    public boolean getRuneActive(){
+        return this.runeActive;
+    }
+
+    public void setRuneActive(boolean runeActive){
+        this.runeActive = runeActive;
+    }
+
+    public boolean getIsDeathNow(){
+        return this.isDeathNow;
+    }
+
+    public void setIsDeathNow(boolean isDeathNow){
+        this.isDeathNow = isDeathNow;
+    }
+
+    public CardInfo getRelationCardInfo() {
+        return relationCardInfo;
+    }
+
+    public void setRelationCardInfo(CardInfo relationCardInfo) {
+        this.relationCardInfo = relationCardInfo;
+    }
 }

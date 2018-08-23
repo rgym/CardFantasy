@@ -28,8 +28,46 @@ public final class IceTouch {
             if (!resolver.resolveAttackBlockingSkills(attacker, victim, skillUseInfo.getSkill(), damage).isAttackable()) {
                 continue;
             }
+            int magicEchoSkillResult = resolver.resolveMagicEchoSkill(attacker, victim, skill);
+            if (magicEchoSkillResult==1||magicEchoSkillResult==2) {
+                if (attacker instanceof CardInfo) {
+                    CardInfo attackCard = (CardInfo) attacker;
+                    if (attackCard.isDead()) {
+                        if (magicEchoSkillResult == 1) {
+                            continue;
+                        }
+                    }
+                    else {
+                        int damage2 = damage;
+                        if (!resolver.resolveAttackBlockingSkills(victim, attackCard, skillUseInfo.getSkill(), damage2).isAttackable()) {
+                            if (magicEchoSkillResult == 1) {
+                                continue;
+                            }
+                        }
+                        else{
+                            if (resolver.resolveIsImmune(attackCard,0)) {
+                                damage2 *= magnifier;
+                            } else {
+                                if (resolver.getStage().getRandomizer().roll100(rate)) {
+                                    CardStatusItem status = CardStatusItem.frozen(skillUseInfo);
+                                    if (!resolver.resolveBlockStatusSkills(victim, attackCard, skillUseInfo, status).isBlocked()) {
+                                        ui.addCardStatus(victim, attackCard, skill, status);
+                                        attackCard.addStatus(status);
+                                    }
+                                }
+                            }
+                            ui.attackCard(victim, attackCard, skill, damage2);
+                            resolver.resolveDeathSkills(victim, attackCard, skill,
+                                    resolver.applyDamage(victim, attackCard, skill, damage2));
+                        }
+                    }
+                }
+                if (magicEchoSkillResult == 1) {
+                    continue;
+                }
+            }
             int actualDamage = damage;
-            if (victim.containsAllSkill(SkillType.免疫)|| victim.containsAllSkill(SkillType.结界立场)|| victim.containsAllSkill(SkillType.影青龙)|| victim.containsAllSkill(SkillType.魔力抗性) || CounterMagic.getBlockSkill(victim) != null) {
+            if (resolver.resolveIsImmune(victim,0)) {
                 actualDamage *= magnifier;
             } else {
                 if (resolver.getStage().getRandomizer().roll100(rate)) {

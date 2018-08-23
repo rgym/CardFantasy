@@ -4,15 +4,13 @@ import cfvbaibai.cardfantasy.CardFantasyRuntimeException;
 import cfvbaibai.cardfantasy.Randomizer;
 import cfvbaibai.cardfantasy.data.CardSkill;
 import cfvbaibai.cardfantasy.data.Skill;
-import cfvbaibai.cardfantasy.engine.Player;
-import cfvbaibai.cardfantasy.engine.SkillUseInfo;
-import cfvbaibai.cardfantasy.engine.SkillResolver;
-import cfvbaibai.cardfantasy.engine.CardInfo;
+import cfvbaibai.cardfantasy.engine.*;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class AddSkillOpponent {
-    public static void apply(SkillResolver resolver, SkillUseInfo skillUseInfo, CardInfo card, Skill addSkill,int number,Player defenderHero) {
+    public static void apply(SkillResolver resolver, SkillUseInfo skillUseInfo, CardInfo card, Skill addSkill,int number,Player defenderHero)throws HeroDieSignal {
         if (card == null || card.isDead()) {
             throw new CardFantasyRuntimeException("card should not be null or dead!");
         }
@@ -27,7 +25,7 @@ public class AddSkillOpponent {
         for (CardInfo handCard : allHandCards) {
             for(SkillUseInfo skillInfo:handCard.getSkillUserInfos())
             {
-                if(skillInfo.getGiveSkill()==1)
+                if(skillInfo.getGiveSkill()==2)
                 {
                     flag=false;
                     break;
@@ -49,12 +47,16 @@ public class AddSkillOpponent {
                 revivableCards, number, true, null);
 
         for (CardInfo once : addCard) {
+            OnAttackBlockingResult result = resolver.resolveAttackBlockingSkills(card, once, skill, 1);
+            if(!result.isAttackable()) {
+                continue;
+            }
             if(once.containsAllSkill(addSkill.getType()))
             {
                 continue;
             }
             thisSkillUserInfo = new SkillUseInfo(once,cardSkill);
-            thisSkillUserInfo.setGiveSkill(1);
+            thisSkillUserInfo.setGiveSkill(2);
             once.addSkill(thisSkillUserInfo);
         }
     }
